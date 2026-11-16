@@ -26,3 +26,11 @@ body.hbdesk-playing #hb37-game-top10{top:48px}
 .hb37-top10-switch button{min-width:0;border:1px solid #bcaa83;background:#f3ecd9;color:#29495a;border-radius:9px;padding:9px 5px;font:900 11px/1.15 Trebuchet MS,Arial,sans-serif;cursor:pointer}
 .hb37-top10-switch button[aria-pressed="true"]{background:#09536e;border-color:#09536e;color:#fff5cf;box-shadow:0 2px 6px #073e5540}
 .hb37-top10-switch button:focus-visible{outline:3px solid #e8a52c;outline-offset:2px}
+
+/* Confirmación visible del guardado de puntuaciones, sin intervenir en los datos. */
+#hb37-save-notice{position:fixed;z-index:975;left:50%;bottom:20px;transform:translateX(-50%);max-width:min(92vw,580px);width:max-content;box-sizing:border-box;padding:12px 19px;border-radius:14px;border:2px solid #c5a36d;background:#fff9df;color:#254568;box-shadow:0 7px 26px #061c3766;font:800 15px/1.35 Trebuchet MS,Arial,sans-serif;text-align:center;pointer-events:none}
+#hb37-save-notice[hidden]{display:none!important}
+#hb37-save-notice[data-kind="saved"]{background:#e6f8e8;border-color:#48a365;color:#136038}
+#hb37-save-notice[data-kind="pending"]{background:#fff0e2;border-color:#df8b48;color:#8e3c11}
+#hb37-save-notice[data-kind="sending"]{background:#edf5ff;border-color:#5d91c4;color:#20517f}
+@media(max-width:740px){#hb37-save-notice{font-size:13px;bottom:70px;padding:10px 13px}}
