@@ -106,7 +106,46 @@ function top10Started(game,previous){
  const root=document.getElementById('hb37-game-top10');if(root)root.classList.add('ready');
  if(previous!==game){top10Cache='';top10Mode='game';const root=document.getElementById('hb37-game-top10');if(root)root.querySelectorAll('[data-hb37-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.hb37Mode==='game')));if(top10Open)top10SetOpen(false);}
 }
+ function installGlobalRankingOption(){
+  const select=document.getElementById('rank-select');if(!select)return;
+  const heading=document.getElementById('ranking-title');
+  const section=document.getElementById('sailkapena');
+  const subtitle=section?.querySelector('.section-heading p');
+  const foot=section?.querySelector('.ranking-bottom > span');
+  const previousTitle=heading?.textContent||'Ohorezko sailkapena';
+  const previousSubtitle=subtitle?.textContent||'Joko bakoitzak bere TOP 10a du. Sailkapena automatikoki berritzen da.';
+  const previousFoot=foot?.textContent||'🏆 Puntuazio onena goitizen bakoitzeko';
+  const ensureOption=()=>{
+   if(!select.querySelector('option[value="__guztira"]')){
+    const prev=select.value;
+    const opt=document.createElement('option');
+    opt.value='__guztira';opt.textContent='🏆 GUZTIRA · 10 jokoak';
+    select.insertBefore(opt,select.firstChild);
+    if(prev)select.value=prev;
+   }
+  };
+  ensureOption();
+  new MutationObserver(ensureOption).observe(select,{childList:true});
+  const sync=()=>{
+   const global=select.value==='__guztira';
+   section?.classList.toggle('hb37-global-ranking',global);
+   if(heading)heading.textContent=global?'🏆 GUZTIRA · 10 jokoetako sailkapena':previousTitle;
+   if(subtitle)subtitle.textContent=global?'Jokalari bakoitzaren 10 jokoetako marka onenen batura. Gehienez 8.000 puntu.':previousSubtitle;
+   if(foot)foot.textContent=global?'🏆 GUZTIRA · 10 jokoetako puntuaziorik onenak':previousFoot;
+  };
+  select.addEventListener('change',sync);sync();
+ }
  async function leaderboard(game){if(!session)return [];const d=await rpc('student_board',{p_token:session.token});
+  if(game==='__guztira'){
+   return (Array.isArray(d?.students)?d.students:[])
+    .filter(s=>s&&String(s.nickname||'').trim())
+    .map(s=>({name:String(s.nickname),
+      score:Number.isFinite(Number(s.total))?Number(s.total):
+       GAMES.reduce((sum,g)=>sum+(Number(s.scores?.[g[0]])||0),0),
+      elapsedMs:0}))
+    .sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'eu'))
+    .slice(0,10);
+  }
   const list=(d?.students||[]).map(s=>({name:s.nickname,score:Number(s.scores?.[game]||0),elapsedMs:0})).filter(s=>s.score>=0).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'eu'));
   return list.filter(s=>s.score>0).slice(0,10)}
  function attemptId(){
@@ -172,7 +211,7 @@ function top10Started(game,previous){
  }
  window.HB_CLOUD={joined:false,configured,storageKey,change,leaderboard,started,partial,aborted,finished,refresh:refreshBadge,get session(){return session}};
  function init(){const panel=document.createElement('div');panel.id='hb37-ui';panel.innerHTML=`<button type="button" id="hb37-badge">🏆 Ikasgelara sartu</button><div id="hb37-veil" hidden><div class="hb37-card" role="dialog" aria-modal="true" aria-labelledby="hb37-title"><h2 id="hb37-title">🏭 HistoriaBizia · Ikasgela</h2><p>Idatzi ikasgelako kodea eta zure goitizena. Emaitzak beste ikasleekin partekatuko dira.</p><form id="hb37-form"><label>Ikasgelaren kodea <input name="code" maxlength="10" autocomplete="off" required placeholder="10 karakter"/></label><label>Goitizena <input name="nickname" maxlength="18" autocomplete="nickname" required placeholder="Adib. Izar24"/></label><button type="submit">▶ Ikasgelan sartu</button></form><p id="hb37-message" role="status"></p><small>Ez erabili benetako izen-abizenik. Irakasleak emandako esteka erabil dezakezu.</small><button type="button" class="hb37-close" id="hb37-close" hidden>Itxi</button></div></div><span id="hb37-summary" aria-live="polite"></span>`;
-  document.body.append(panel);top10Mount();
+  document.body.append(panel);top10Mount();installGlobalRankingOption();
   $('hb37-badge').onclick=()=>change();$('hb37-form').onsubmit=e=>{e.preventDefault();const f=e.target;void join(f.elements.code.value,f.elements.nickname.value)};
   $('hb37-close').onclick=()=>{if(session)veil(false)};
   if(!configured){status('Supabase konfigurazioa falta da.',true);change();return}
