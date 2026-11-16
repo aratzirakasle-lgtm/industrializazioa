@@ -4,7 +4,7 @@
  const configured=/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(base)&&/^sb_publishable_[A-Za-z0-9_-]+$/.test(pub);
  const GAMES=[['hasiera','Zergatik hasi zen?'],['industria_denbora_v1','Industria Iraultzen denbora-lerroa'],['sektoreak','Ehungintza eta siderurgia'],['garraioa','Garraioen iraultza'],['bigarrena','Bigarren Industria Iraultza'],['hedapena','Iraultzaren hedapena'],['gizartea','Gizarte industriala'],['denbora','Langileen denbora-lerroa'],['mugimendua','Langileen aldarrikapenak'],['azkena','Hiri elektrikoa']];
  const GAMESET=new Set(GAMES.map(x=>x[0])), $=id=>document.getElementById(id);
- let session=null,lastGame='',lastPoints=0,lastSent=0,requestBusy=false,joinedClass='',outbox=[],joining=false;
+ let session=null,lastGame='',lastPoints=0,lastSent=0,requestBusy=false,joinedClass='',outbox=[],joining=false,activeAttempt=null;
  let top10Open=false,top10Busy=false,top10Cache='';
  const ps=()=>{try{return JSON.parse(localStorage.getItem('hb37-sessions')||'{}')}catch{return {}}};
  const snap=()=>{try{return JSON.parse(localStorage.getItem('hb37-pending-'+session.room_id+'-v'+session.generation)||'[]')}catch{return []}};
@@ -97,21 +97,67 @@ function top10Started(game,previous){
  async function leaderboard(game){if(!session)return [];const d=await rpc('student_board',{p_token:session.token});
   const list=(d?.students||[]).map(s=>({name:s.nickname,score:Number(s.scores?.[game]||0),elapsedMs:0})).filter(s=>s.score>=0).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'eu'));
   return list.filter(s=>s.score>0).slice(0,10)}
- function started(game){if(!session||!GAMESET.has(game))return;const previous=lastGame;lastGame=game;lastPoints=0;lastSent=0;top10Started(game,previous);void progress('playing',true)}
- async function progress(st='playing',force=false){if(!session||!GAMESET.has(lastGame))return;
-  if(!force&&Date.now()-lastSent<11000)return;lastSent=Date.now();
-  try{await rpc('student_progress',{p_token:session.token,p_game:lastGame,p_partial:Math.min(800,Math.max(0,lastPoints|0)),p_status:st,p_generation:session.generation})}catch{} }
- function partial(n){if(!session)return;lastPoints=Math.min(800,Math.max(0,Number(n)||0));void progress('playing')}
- function aborted(){if(session&&lastGame){void progress('idle',true);lastGame='';top10SetOpen(false)}}
- function finished(game,score,complete){if(!session||!GAMESET.has(game))return;
-  lastGame=game;lastPoints=Math.min(800,Math.max(0,Math.round(Number(score)||0)));
-  if(complete){outbox.push({game,score:lastPoints,attempt:'hb37-'+Date.now()+'-'+Math.random().toString(36).slice(2),generation:session.generation});save();void flush()}
-  else void progress('idle',true);
+ function attemptId(){
+  return 'hb37-'+Date.now()+'-'+Math.random().toString(36).slice(2)+'-'+Math.random().toString(36).slice(2);
  }
- async function flush(){if(requestBusy||!session||!outbox.length)return;requestBusy=true;try{
-  while(outbox.length){const r=outbox[0];await rpc('student_finish',{p_token:session.token,p_game:r.game,p_score:r.score,p_attempt:r.attempt,p_generation:r.generation});outbox.shift();save()}
-  void refreshBadge();if(top10Open)void top10Refresh();
- }catch(e){status('Puntuazioa bidaltzeke; konexioa berreskuratzean berriro saiatuko da.',true)}finally{requestBusy=false}}
+ function queueStart(game,id){
+  outbox.push({kind:'start',game,attempt:id,generation:session.generation});
+  save();void flush();
+ }
+ function started(game){
+  if(!session||!GAMESET.has(game))return;
+  const previous=lastGame;
+  lastGame=game;lastPoints=0;lastSent=0;
+  activeAttempt={game,id:attemptId()};
+  queueStart(game,activeAttempt.id);
+  top10Started(game,previous);
+  void progress('playing',true);
+ }
+ async function progress(st='playing',force=false){
+  if(!session||!GAMESET.has(lastGame))return;
+  if(!force&&Date.now()-lastSent<11000)return;lastSent=Date.now();
+  try{await rpc('student_progress',{p_token:session.token,p_game:lastGame,p_partial:Math.min(800,Math.max(0,lastPoints|0)),p_status:st,p_generation:session.generation})}catch{}
+ }
+ function partial(n){if(!session)return;lastPoints=Math.min(800,Math.max(0,Number(n)||0));void progress('playing')}
+ function aborted(){
+  if(session&&lastGame){void progress('idle',true);lastGame='';activeAttempt=null;top10SetOpen(false)}
+ }
+ function finished(game,score,complete){
+  if(!session||!GAMESET.has(game))return;
+  lastGame=game;lastPoints=Math.min(800,Math.max(0,Math.round(Number(score)||0)));
+  if(complete){
+   let id;
+   if(activeAttempt?.game===game)id=activeAttempt.id;
+   else{id=attemptId();queueStart(game,id);}
+   outbox.push({kind:'finish',game,score:lastPoints,attempt:id,generation:session.generation});
+   save();void flush();
+  }else void progress('idle',true);
+  activeAttempt=null;
+ }
+ async function flush(){
+  if(requestBusy||!session||!outbox.length)return;
+  requestBusy=true;
+  try{
+   while(outbox.length&&session){
+    const item=outbox[0];
+    if(item.kind==='start'){
+     try{
+      await rpc('student_attempt_start',{p_token:session.token,p_game:item.game,p_attempt:item.attempt,p_generation:item.generation});
+     }catch(err){
+      // Before the teacher installs the non-destructive SQL update, the
+      // start-only RPC is unavailable. Do not block the existing score uploads.
+      if(!/(Could not find the function|PGRST202|student_attempt_start.*schema cache)/i.test(String(err?.message||'')))throw err;
+     }
+    }else{
+     await rpc('student_finish',{p_token:session.token,p_game:item.game,p_score:item.score,p_attempt:item.attempt,p_generation:item.generation});
+    }
+    outbox.shift();save();
+   }
+   void refreshBadge();if(top10Open)void top10Refresh();
+  }catch(err){
+   status('Emaitzak bidaltzeke; konexioa berreskuratzean berriro saiatuko da.',true);
+  }finally{requestBusy=false}
+ }
  window.HB_CLOUD={joined:false,configured,storageKey,change,leaderboard,started,partial,aborted,finished,refresh:refreshBadge,get session(){return session}};
  function init(){const panel=document.createElement('div');panel.id='hb37-ui';panel.innerHTML=`<button type="button" id="hb37-badge">🏆 Ikasgelara sartu</button><div id="hb37-veil" hidden><div class="hb37-card" role="dialog" aria-modal="true" aria-labelledby="hb37-title"><h2 id="hb37-title">🏭 HistoriaBizia · Ikasgela</h2><p>Idatzi ikasgelako kodea eta zure goitizena. Emaitzak beste ikasleekin partekatuko dira.</p><form id="hb37-form"><label>Ikasgelaren kodea <input name="code" maxlength="10" autocomplete="off" required placeholder="10 karakter"/></label><label>Goitizena <input name="nickname" maxlength="18" autocomplete="nickname" required placeholder="Adib. Izar24"/></label><button type="submit">▶ Ikasgelan sartu</button></form><p id="hb37-message" role="status"></p><small>Ez erabili benetako izen-abizenik. Irakasleak emandako esteka erabil dezakezu.</small><button type="button" class="hb37-close" id="hb37-close" hidden>Itxi</button></div></div><span id="hb37-summary" aria-live="polite"></span>`;
   document.body.append(panel);top10Mount();
