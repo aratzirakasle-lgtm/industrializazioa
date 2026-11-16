@@ -5,7 +5,7 @@
  const GAMES=[['hasiera','Zergatik hasi zen?'],['industria_denbora_v1','Industria Iraultzen denbora-lerroa'],['sektoreak','Ehungintza eta siderurgia'],['garraioa','Garraioen iraultza'],['bigarrena','Bigarren Industria Iraultza'],['hedapena','Iraultzaren hedapena'],['gizartea','Gizarte industriala'],['denbora','Langileen denbora-lerroa'],['mugimendua','Langileen aldarrikapenak'],['azkena','Hiri elektrikoa']];
  const GAMESET=new Set(GAMES.map(x=>x[0])), $=id=>document.getElementById(id);
  let session=null,lastGame='',lastPoints=0,lastSent=0,requestBusy=false,joinedClass='',outbox=[],joining=false,activeAttempt=null;
- let top10Open=false,top10Busy=false,top10Cache='';
+ let top10Open=false,top10Busy=false,top10Cache='',top10Mode='game';
  const ps=()=>{try{return JSON.parse(localStorage.getItem('hb37-sessions')||'{}')}catch{return {}}};
  const snap=()=>{try{return JSON.parse(localStorage.getItem('hb37-pending-'+session.room_id+'-v'+session.generation)||'[]')}catch{return []}};
  const save=()=>{if(!session)return;try{localStorage.setItem('hb37-pending-'+session.room_id+'-v'+session.generation,JSON.stringify(outbox))}catch{}};
@@ -45,6 +45,7 @@ function top10Mount(){
  root.innerHTML=`<button id="hb37-game-top10-toggle" type="button" aria-controls="hb37-game-top10-panel" aria-expanded="false" aria-label="Ikusi joko honetako TOP 10">🏆 TOP 10 <span aria-hidden="true">▸</span></button>
  <aside id="hb37-game-top10-panel" role="region" aria-label="Joko honetako ikasgelako TOP 10a" hidden>
  <header class="hb37-top10-head"><div><small>IKASGELAKO SAILKAPENA</small><strong id="hb37-game-top10-title">TOP 10</strong><span id="hb37-game-top10-room"></span></div><button id="hb37-game-top10-close" type="button" aria-label="Itxi TOP 10">✕</button></header>
+ <div class="hb37-top10-switch" role="group" aria-label="Sailkapenaren iragazkia"><button type="button" data-hb37-mode="game" aria-pressed="true">JOKO HONETAN</button><button type="button" data-hb37-mode="total" aria-pressed="false">GUZTIRA</button></div>
  <div id="hb37-game-top10-rows" class="hb37-top10-rows" aria-live="polite"><p class="hb37-top10-note">Ireki sailkapena emaitzak ikusteko.</p></div>
  <footer class="hb37-top10-foot"><span id="hb37-game-top10-status">Amaitutako partiden markak</span><button type="button" id="hb37-game-top10-refresh">↻ Eguneratu</button></footer>
  </aside>`;
@@ -52,6 +53,13 @@ function top10Mount(){
  document.getElementById('hb37-game-top10-toggle').addEventListener('click',()=>top10SetOpen(!top10Open));
  document.getElementById('hb37-game-top10-close').addEventListener('click',()=>top10SetOpen(false));
  document.getElementById('hb37-game-top10-refresh').addEventListener('click',()=>void top10Refresh());
+ root.querySelectorAll('[data-hb37-mode]').forEach(btn=>btn.addEventListener('click',()=>{
+  const next=btn.dataset.hb37Mode;
+  if(next===top10Mode)return;
+  top10Mode=next;top10Cache='';
+  root.querySelectorAll('[data-hb37-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.hb37Mode===next)));
+  void top10Refresh();
+ }));
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&top10Open)top10SetOpen(false)});
  setInterval(()=>{if(top10Open&&!document.hidden&&document.body.classList.contains('hb-playing'))void top10Refresh()},12000);
 }
@@ -68,22 +76,26 @@ async function top10Refresh(){
  const roomId=session.room_id,game=lastGame,token=session.token;
  const gameTitle=GAMES.find(g=>g[0]===game)?.[1]||'TOP 10';
  const name=document.getElementById('hb37-game-top10-title'),room=document.getElementById('hb37-game-top10-room'),statusEl=document.getElementById('hb37-game-top10-status'),refresh=document.getElementById('hb37-game-top10-refresh');
- if(name)name.textContent=gameTitle;
+ if(name)name.textContent=top10Mode==='total'?'GUZTIRA · 10 jokoak':gameTitle;
  if(room)room.textContent=session.room+' · TOP 10';
  if(refresh)refresh.disabled=true;
  top10Busy=true;
  try{
   const data=await rpc('student_board',{p_token:token});
   if(!top10Open||!session||session.room_id!==roomId||lastGame!==game)return;
+  const mode=top10Mode;
   const entries=(Array.isArray(data?.students)?data.students:[])
-   .filter(s=>s&&s.scores&&Object.prototype.hasOwnProperty.call(s.scores,game)&&s.scores[game]!==null&&s.scores[game]!==undefined&&Number.isFinite(Number(s.scores[game])))
-   .map(s=>({name:String(s.nickname||''),score:Number(s.scores[game])}))
+   .filter(s=>s&&String(s.nickname||'').trim()&&
+     (mode==='total'||(s.scores&&Object.prototype.hasOwnProperty.call(s.scores,game)&&
+      s.scores[game]!==null&&s.scores[game]!==undefined&&Number.isFinite(Number(s.scores[game])))))
+   .map(s=>({name:String(s.nickname),
+     score:mode==='total'?(Number.isFinite(Number(s.total))?Number(s.total):GAMES.reduce((sum,g)=>sum+(Number(s.scores?.[g[0]])||0),0)):Number(s.scores[game])}))
    .sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'eu'));
   const myPlace=entries.findIndex(s=>s.name.toLocaleLowerCase('eu')===session.nickname.toLocaleLowerCase('eu'));
   const rows=entries.slice(0,10).map((e,i)=>`<div class="hb37-top10-row${e.name.toLocaleLowerCase('eu')===session.nickname.toLocaleLowerCase('eu')?' mine':''}"><span class="hb37-top10-pos">${['🥇','🥈','🥉'][i]||(i+1)+'.'}</span><span class="hb37-top10-name">${safe(e.name)}</span><strong class="hb37-top10-score">${Math.round(e.score).toLocaleString('es-ES')}</strong></div>`).join('');
-  const html=rows||'<p class="hb37-top10-note">Oraindik ez dago amaitutako partidarik joko honetan. Izan zaitez lehena!</p>';
+  const html=rows||(mode==='total'?'<p class="hb37-top10-note">Oraindik ez dago ikaslerik sailkapen orokorrean.</p>':'<p class="hb37-top10-note">Oraindik ez dago amaitutako partidarik joko honetan. Izan zaitez lehena!</p>');
   const box=document.getElementById('hb37-game-top10-rows');if(box&&top10Cache!==html){box.innerHTML=html;top10Cache=html;}
-  if(statusEl)statusEl.textContent=myPlace>=10?'Zure postua: '+(myPlace+1)+'. · '+entries[myPlace].score+' puntu':'Ikasgelako markak · '+entries.length+' jokalari';
+  if(statusEl)statusEl.textContent=myPlace>=10?'Zure postua: '+(myPlace+1)+'. · '+entries[myPlace].score+' puntu':(mode==='total'?'10 jokoetako onenen batura · ':'Joko honetako markak · ')+entries.length+' jokalari';
  }catch(err){
   if(!top10Cache){const box=document.getElementById('hb37-game-top10-rows');if(box)box.innerHTML='<p class="hb37-top10-note">Ezin izan da sailkapena kargatu. Saiatu berriro.</p>';}
   if(statusEl)statusEl.textContent='Konexio-arazoa · ↻ saiatu berriro';
@@ -92,7 +104,7 @@ async function top10Refresh(){
 function top10Started(game,previous){
  if(!GAMESET.has(game))return;
  const root=document.getElementById('hb37-game-top10');if(root)root.classList.add('ready');
- if(previous!==game){top10Cache='';if(top10Open)top10SetOpen(false);}
+ if(previous!==game){top10Cache='';top10Mode='game';const root=document.getElementById('hb37-game-top10');if(root)root.querySelectorAll('[data-hb37-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.hb37Mode==='game')));if(top10Open)top10SetOpen(false);}
 }
  async function leaderboard(game){if(!session)return [];const d=await rpc('student_board',{p_token:session.token});
   const list=(d?.students||[]).map(s=>({name:s.nickname,score:Number(s.scores?.[game]||0),elapsedMs:0})).filter(s=>s.score>=0).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'eu'));
