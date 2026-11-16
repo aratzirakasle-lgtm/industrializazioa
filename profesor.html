@@ -27,9 +27,9 @@
       <button id="room-close" type="button">Ikasgela itxi</button>
       <button id="room-reset" class="danger" type="button">Puntuazioak berrezarri</button></div>
     <div class="stats"><div class="stat"><strong id="n-students">0</strong><small>Ikasle</small></div><div class="stat"><strong id="n-live">0</strong><small>Jokatzen</small></div><div class="stat"><strong id="n-completed">0</strong><small>Joko osatu guztira</small></div><div class="stat"><strong id="n-max">0</strong><small>Markarik altuena</small></div></div>
-    <div class="topbar"><h2>🏆 Sailkapen orokorra · TOP 10 jokoak</h2><label>Ikusi sailkapena<select id="teacher-filter" style="min-height:41px;border:2px solid #cda65d;border-radius:9px;background:#fffaf0;padding:7px"></select></label></div><p class="overall-guide">Guztira = 10 jokoetako marka onenen batura · Gehienez 8.000 puntu. Goitizena sakatuta, joko bakoitzeko saiakerak eta marka onena ikus ditzakezu.</p><div id="leaders" class="leader-list"></div>
+    <div class="topbar"><h2 id="ranking-title">🏆 GUZTIRA · 10 jokoen sailkapena</h2><label>Sailkapena<select id="teacher-filter" style="min-height:41px;border:2px solid #cda65d;border-radius:9px;background:#fffaf0;padding:7px"></select></label></div><p class="overall-guide">GUZTIRA = ikasle bakoitzaren 10 jokoetako puntuaziorik onenen batura · Gehienez 8.000 puntu. Ikaslearen goitizena sakatuta, joko bakoitzeko marka onena ikus dezakezu.</p><div id="leaders" class="leader-list"></div>
    </section>
-   <section id="details" class="panel hidden" style="margin-top:14px"><div class="topbar"><h2 id="detail-nick"></h2><button id="detail-close" type="button">Itxi</button></div><div id="detail-total" class="total-score-title"></div><p class="score-detail-note">Saiakerak = jokoan hasitako partidak; amaitutakoak = azken puntuazioa bidali dutenak. Aurreko bertsioen saiakera amaitu gabeak ezin dira berreskuratu.</p><div id="detail-scores" class="grid-scores"></div></section>
+   <section id="details" class="panel hidden" style="margin-top:14px"><div class="topbar"><h2 id="detail-nick"></h2><button id="detail-close" type="button">Itxi</button></div><div id="detail-total" class="total-score-title"></div><p class="score-detail-note">Joko bakoitzeko marka onena eta 10 jokoen batura (GUZTIRA).</p><div id="detail-scores" class="grid-scores"></div></section>
   </div>
  </main></section>
  <p class="foot">Segurtasuna: ikasleek goitizenak bakarrik erabiltzen dituzte; ez idatzi izen-abizenik. Errekorrak zerbitzarian daude eta ikasgelako kideek kontsulta ditzakete. Plataformak ez du kopuru horien egiazkotasun akademikoa automatikoki egiaztatzen.</p>
@@ -84,7 +84,7 @@ function drawRoomHeader(){
  $('student-link').textContent=studentLink();$('student-link').href=studentLink();
  $('current-room').classList.remove('hidden');
 }
-async function chooseRoom(id){room=rooms.find(r=>r.id===id);data=null;teacherGame='';$('teacher-filter').value='';$('details').classList.add('hidden');$('details').dataset.student='';if(!room)return;drawRoomHeader();
+async function chooseRoom(id){room=rooms.find(r=>r.id===id);data=null;teacherGame='';$('teacher-filter').value='';$('ranking-title').textContent='🏆 GUZTIRA · 10 jokoen sailkapena';$('details').classList.add('hidden');$('details').dataset.student='';if(!room)return;drawRoomHeader();
  $('room-list').querySelectorAll('[data-room]').forEach(e=>e.classList.toggle('current',e.dataset.room===room.id));
  await refreshBoard();
 }
@@ -122,13 +122,7 @@ function drawBoard(){
 function drawStudentDetail(s){const e=$('details');if(!s){e.classList.add('hidden');e.dataset.student='';return}
  e.dataset.student=s.id;e.classList.remove('hidden');$('detail-nick').textContent=s.nickname;
  $('detail-total').textContent='🏆 Guztira: '+fmt(s.total||0)+' / 8.000 puntu · '+Number(s.completed||0)+'/10 joko';
- $('detail-scores').innerHTML=GAME_IDS.map((id,i)=>{
-   const attempts=s.attempts?.[id];
-   const completed=s.completed_attempts?.[id];
-   return `<div class="game-score"><small>${i+1}. ${E(GAME_NAMES[i])}</small><b>${s.scores?.[id]==null?'—':fmt(s.scores[id])} <small>/ 800</small></b>
-     <div class="attempt-line">Saiakerak: <strong>${attempts==null?'—':fmt(attempts)}</strong></div>
-     <div class="complete-line">Amaitutakoak: ${completed==null?'—':fmt(completed)}</div></div>`;
- }).join('');
+ $('detail-scores').innerHTML=GAME_IDS.map((id,i)=>`<div class="game-score"><small>${i+1}. ${E(GAME_NAMES[i])}</small><b>${s.scores?.[id]==null?'—':fmt(s.scores[id])} <small>/ 800</small></b></div>`).join('');
 }
 async function removeStudent(id){const p=data?.students?.find(s=>s.id===id);if(!p)return;
  if(!confirm('Ezabatu '+p.nickname+' eta bere puntuazioak? Ezin da desegin.'))return;
@@ -148,15 +142,15 @@ async function resetRoom(){if(!room)return;
 }
 function exportCSV(){if(!room||!data)return;
  const ss=(data.students||[]).slice().sort((a,b)=>b.total-a.total);
- const rows=[['Goitizena',...GAME_NAMES.flatMap(n=>[n+' · Onena',n+' · Saiakerak',n+' · Amaitutakoak']),'Guztira (onenen batura)','Jokoak osatuta']];
- for(const s of ss)rows.push([s.nickname,...GAME_IDS.flatMap(id=>[s.scores?.[id]??'',s.attempts?.[id]??'',s.completed_attempts?.[id]??'']),s.total,s.completed]);
+ const rows=[['Goitizena','GUZTIRA',...GAME_NAMES,'Jokoak osatuta']];
+ for(const s of ss)rows.push([s.nickname,s.total,...GAME_IDS.map(id=>s.scores?.[id]??''),s.completed]);
  const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
  const a=document.createElement('a');a.href=url;a.download='HistoriaBizia_Industrializazioa_'+room.code+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function init(){
- $('teacher-filter').innerHTML='<option value="">10 jokoak · orokorra</option>'+GAME_IDS.map((id,i)=>`<option value="${id}">${i+1}. ${GAME_NAMES[i]}</option>`).join('');
- $('teacher-filter').onchange=e=>{teacherGame=e.target.value;if(data)drawBoard()};
+ $('teacher-filter').innerHTML='<option value="">GUZTIRA · 10 jokoak</option>'+GAME_IDS.map((id,i)=>`<option value="${id}">${i+1}. ${GAME_NAMES[i]}</option>`).join('');
+ $('teacher-filter').onchange=e=>{teacherGame=e.target.value;const t=$('ranking-title');if(t)t.textContent=teacherGame?'🏆 '+(GAME_NAMES[GAME_IDS.indexOf(teacherGame)]||'Jokoa')+' · sailkapena':'🏆 GUZTIRA · 10 jokoen sailkapena';if(data)drawBoard()};
  if(!ok)msg('Hodeia konfiguratu gabe; bete Supabase URLa eta gako publikoa.',true);
  $('signin-form').onsubmit=e=>{e.preventDefault();signin($('teacher-email').value,$('teacher-pass').value).catch(e=>msg(e.message,true))};
  $('logout').onclick=signout;$('room-create').onclick=createRoom;
