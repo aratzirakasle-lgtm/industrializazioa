@@ -11,6 +11,13 @@
  const save=()=>{if(!session)return;try{localStorage.setItem('hb37-pending-'+session.room_id+'-v'+session.generation,JSON.stringify(outbox))}catch{}};
  function persist(){try{let a=ps();a[session.code]=session;localStorage.setItem('hb37-sessions',JSON.stringify(a))}catch{}}
  function status(message,bad=false){const x=$('hb37-message');if(x){x.textContent=message;x.classList.toggle('bad',!!bad)}}
+ let saveNoticeTimer=null;
+ function showSaveNotice(kind,message){
+  clearTimeout(saveNoticeTimer);saveNoticeTimer=null;
+  const notice=$('hb37-save-notice');if(!notice)return;
+  notice.hidden=!kind;notice.dataset.kind=kind||'';notice.textContent=message||'';
+  if(kind==='saved')saveNoticeTimer=setTimeout(()=>{notice.hidden=true;},20000);
+ }
  async function rpc(name,data){if(!configured)throw Error('Supabase ez dago konfiguratuta.');
   const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),12000);
   try{const res=await fetch(base+'/rest/v1/rpc/hb37_'+name,{method:'POST',headers:{'apikey':pub,'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal,cache:'no-store'});
@@ -32,7 +39,9 @@
     window.HB_CLOUD.joined=true;veil(false);paint();status('✓ Konektatuta');
     try{const input=$('nickname');if(input){input.value=nick;input.readOnly=true;}}catch{}
     try{localStorage.setItem(storageKey('industria-nickname'),JSON.stringify(nick))}catch{}
-    window.dispatchEvent(new StorageEvent('storage',{key:'industria-nickname'}));void flush();void refreshBadge();
+    window.dispatchEvent(new StorageEvent('storage',{key:'industria-nickname'}));
+    if(outbox.some(item=>item.kind!=='start'))showSaveNotice('pending','☁ Aurreko puntuak bidaltzeke; berriro saiatzen…');
+    void flush();void refreshBadge();
   }catch(e){if(restore){veil(true);status('Aukeratu goitizena gelan sartzeko.',true)}else status(e.message||'Ezin izan da gelara sartu.',true)}
   finally{joining=false;}}
  async function refreshBadge(){if(!session)return;try{const d=await rpc('student_board',{p_token:session.token});const list=d?.students||[];
@@ -156,6 +165,7 @@ function top10Started(game,previous){
   const previous=lastGame;
   lastGame=game;lastPoints=0;lastSent=0;
   activeAttempt={game,id:attemptId()};
+  if($('hb37-save-notice')?.dataset.kind==='saved')showSaveNotice('','');
   top10Started(game,previous);
   void progress('playing',true);
  }
@@ -176,7 +186,9 @@ function top10Started(game,previous){
    if(activeAttempt?.game===game)id=activeAttempt.id;
    else{id=attemptId();}
    outbox.push({kind:'finish',game,score:lastPoints,attempt:id,generation:session.generation});
-   save();void flush();
+   save();
+   showSaveNotice('sending','☁ Puntuazioa bidaltzen… Itxaron baieztapena arte.');
+   void flush();
   }else void progress('idle',true);
   activeAttempt=null;lastGame='';
  }
@@ -193,14 +205,18 @@ function top10Started(game,previous){
     }
     await rpc('student_finish',{p_token:session.token,p_game:item.game,p_score:item.score,p_attempt:item.attempt,p_generation:item.generation});
     outbox.shift();save();
+    // Only Supabase's successful response confirms the score was saved.
+    if(!outbox.some(p=>p.kind!=='start'))
+     showSaveNotice('saved','☁ Puntuazioa gordeta ✓ · '+Math.round(Number(item.score)||0)+' puntu');
    }
    void refreshBadge();if(top10Open)void top10Refresh();
   }catch(err){
+   showSaveNotice('pending','☁ Puntuazioa bidaltzeke · Konexioa berreskuratzean berriro saiatuko da.');
    status('Emaitzak bidaltzeke; konexioa berreskuratzean berriro saiatuko da.',true);
   }finally{requestBusy=false}
  }
  window.HB_CLOUD={joined:false,configured,storageKey,change,leaderboard,started,partial,aborted,finished,refresh:refreshBadge,get session(){return session}};
- function init(){const panel=document.createElement('div');panel.id='hb37-ui';panel.innerHTML=`<button type="button" id="hb37-badge">🏆 Ikasgelara sartu</button><div id="hb37-veil" hidden><div class="hb37-card" role="dialog" aria-modal="true" aria-labelledby="hb37-title"><h2 id="hb37-title">🏭 HistoriaBizia · Ikasgela</h2><p>Idatzi ikasgelako kodea eta zure goitizena. Emaitzak beste ikasleekin partekatuko dira.</p><form id="hb37-form"><label>Ikasgelaren kodea <input name="code" maxlength="10" autocomplete="off" required placeholder="10 karakter"/></label><label>Goitizena <input name="nickname" maxlength="18" autocomplete="nickname" required placeholder="Adib. Izar24"/></label><button type="submit">▶ Ikasgelan sartu</button></form><p id="hb37-message" role="status"></p><small>Ez erabili benetako izen-abizenik. Irakasleak emandako esteka erabil dezakezu.</small><button type="button" class="hb37-close" id="hb37-close" hidden>Itxi</button></div></div><span id="hb37-summary" aria-live="polite"></span>`;
+ function init(){const panel=document.createElement('div');panel.id='hb37-ui';panel.innerHTML=`<button type="button" id="hb37-badge">🏆 Ikasgelara sartu</button><div id="hb37-veil" hidden><div class="hb37-card" role="dialog" aria-modal="true" aria-labelledby="hb37-title"><h2 id="hb37-title">🏭 HistoriaBizia · Ikasgela</h2><p>Idatzi ikasgelako kodea eta zure goitizena. Emaitzak beste ikasleekin partekatuko dira.</p><form id="hb37-form"><label>Ikasgelaren kodea <input name="code" maxlength="10" autocomplete="off" required placeholder="10 karakter"/></label><label>Goitizena <input name="nickname" maxlength="18" autocomplete="nickname" required placeholder="Adib. Izar24"/></label><button type="submit">▶ Ikasgelan sartu</button></form><p id="hb37-message" role="status"></p><small>Ez erabili benetako izen-abizenik. Irakasleak emandako esteka erabil dezakezu.</small><button type="button" class="hb37-close" id="hb37-close" hidden>Itxi</button></div></div><span id="hb37-summary" aria-live="polite"></span><div id="hb37-save-notice" role="status" aria-live="polite" aria-atomic="true" hidden></div>`;
   document.body.append(panel);top10Mount();installGlobalRankingOption();
   $('hb37-badge').onclick=()=>change();$('hb37-form').onsubmit=e=>{e.preventDefault();const f=e.target;void join(f.elements.code.value,f.elements.nickname.value)};
   $('hb37-close').onclick=()=>{if(session)veil(false)};
