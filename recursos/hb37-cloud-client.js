@@ -151,16 +151,11 @@ function top10Started(game,previous){
  function attemptId(){
   return 'hb37-'+Date.now()+'-'+Math.random().toString(36).slice(2)+'-'+Math.random().toString(36).slice(2);
  }
- function queueStart(game,id){
-  outbox.push({kind:'start',game,attempt:id,generation:session.generation});
-  save();void flush();
- }
  function started(game){
   if(!session||!GAMESET.has(game))return;
   const previous=lastGame;
   lastGame=game;lastPoints=0;lastSent=0;
   activeAttempt={game,id:attemptId()};
-  queueStart(game,activeAttempt.id);
   top10Started(game,previous);
   void progress('playing',true);
  }
@@ -179,11 +174,11 @@ function top10Started(game,previous){
   if(complete){
    let id;
    if(activeAttempt?.game===game)id=activeAttempt.id;
-   else{id=attemptId();queueStart(game,id);}
+   else{id=attemptId();}
    outbox.push({kind:'finish',game,score:lastPoints,attempt:id,generation:session.generation});
    save();void flush();
   }else void progress('idle',true);
-  activeAttempt=null;
+  activeAttempt=null;lastGame='';
  }
  async function flush(){
   if(requestBusy||!session||!outbox.length)return;
@@ -192,16 +187,11 @@ function top10Started(game,previous){
    while(outbox.length&&session){
     const item=outbox[0];
     if(item.kind==='start'){
-     try{
-      await rpc('student_attempt_start',{p_token:session.token,p_game:item.game,p_attempt:item.attempt,p_generation:item.generation});
-     }catch(err){
-      // Before the teacher installs the non-destructive SQL update, the
-      // start-only RPC is unavailable. Do not block the existing score uploads.
-      if(!/(Could not find the function|PGRST202|student_attempt_start.*schema cache)/i.test(String(err?.message||'')))throw err;
-     }
-    }else{
-     await rpc('student_finish',{p_token:session.token,p_game:item.game,p_score:item.score,p_attempt:item.attempt,p_generation:item.generation});
+     // Old versions queued these records. Discard ONLY start events:
+     // the subsequent finished scores stay queued and will be delivered.
+     outbox.shift();save();continue;
     }
+    await rpc('student_finish',{p_token:session.token,p_game:item.game,p_score:item.score,p_attempt:item.attempt,p_generation:item.generation});
     outbox.shift();save();
    }
    void refreshBadge();if(top10Open)void top10Refresh();
