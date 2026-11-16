@@ -20,3 +20,9 @@ body:not(.hb-playing) #hb37-game-top10,#hb37-game-top10:not(.ready){display:none
 #hb37-game-top10-refresh{border:1px solid #bca171;border-radius:10px;background:#fff9eb;color:#184966;font-weight:900;padding:6px 7px;cursor:pointer;white-space:nowrap}#hb37-game-top10-refresh:disabled{opacity:.45;cursor:default}
 body.hbdesk-playing #hb37-game-top10{top:48px}
 @media(max-width:740px){#hb37-game-top10{top:65px;right:7px}body.hbdesk-playing #hb37-game-top10{top:43px}#hb37-game-top10>button{font-size:11px;padding:7px 10px;min-height:35px}#hb37-game-top10-panel{width:min(312px,calc(100vw - 14px));max-height:65vh}.hb37-top10-row{padding:7px 2px}}
+
+/* Dos filtros dentro del TOP 10: juego actual y suma GUZTIRA. */
+.hb37-top10-switch{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:9px 10px 4px;background:#fff9e9}
+.hb37-top10-switch button{min-width:0;border:1px solid #bcaa83;background:#f3ecd9;color:#29495a;border-radius:9px;padding:9px 5px;font:900 11px/1.15 Trebuchet MS,Arial,sans-serif;cursor:pointer}
+.hb37-top10-switch button[aria-pressed="true"]{background:#09536e;border-color:#09536e;color:#fff5cf;box-shadow:0 2px 6px #073e5540}
+.hb37-top10-switch button:focus-visible{outline:3px solid #e8a52c;outline-offset:2px}
