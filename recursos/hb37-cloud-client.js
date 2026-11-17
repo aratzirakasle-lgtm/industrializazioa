@@ -295,3 +295,61 @@ function top10Started(game,previous){
  new MutationObserver(fold).observe(screen,{childList:true,subtree:true});
  fold();
 })();
+
+
+/* HistoriaBizia V37.13: ayudas de finalización UI-only para los retos 4.4 y 4.5.
+   Usa los botones originales del motor; no evalúa ni modifica puntuaciones. */
+(()=>{'use strict';
+ function init(){
+  const area=document.getElementById('answer-area');
+  if(!area||document.getElementById('hb37-transport-helper-init'))return;
+  const flag=document.createElement('span');flag.id='hb37-transport-helper-init';flag.hidden=true;document.body.append(flag);
+  let scheduled=false;
+  function paint(){
+   const cargo=document.getElementById('hbcg-root');
+   if(cargo){
+    let bar=cargo.querySelector('#hb37-transport-quick');
+    if(!bar){
+     bar=document.createElement('div');bar.id='hb37-transport-quick';
+     bar.setAttribute('role','group');bar.setAttribute('aria-label','Salgaiak helmugara: jarraibideak');
+     bar.innerHTML='<span id="hb37-transport-status"></span><button type="button" id="hb37-transport-build" data-build="r5">🛠 Fabrika–biltegi trenbidea eraiki</button><button type="button" id="hb37-transport-finish" hidden>🏁 Amaitu erronka →</button>';
+     (cargo.querySelector('.hbcg-map-header')||cargo.firstElementChild).after(bar);
+     bar.querySelector('#hb37-transport-finish').addEventListener('click',()=>document.getElementById('hbcg-finish')?.click());
+    }
+    const completed=[...cargo.querySelectorAll('.hbcg-cargo.is-complete')].map(b=>b.dataset.cargo);
+    const isBuilt=!!cargo.querySelector('.hbcg-branch-activated');
+    const b=bar.querySelector('#hb37-transport-build');
+    if(b.disabled!==isBuilt)b.disabled=isBuilt;
+    const label=isBuilt?'✓ Fabrika–biltegi trenbidea osatuta':'🛠 Fabrika–biltegi trenbidea eraiki';
+    if(b.textContent!==label)b.textContent=label;
+    const status=bar.querySelector('#hb37-transport-status');
+    const msg='Nahitaezko bidalketak: '+['coal','cotton','textiles'].filter(x=>completed.includes(x)).length+'/3 · Ikatza → Kotoia → Ehunak. '+(completed.includes('textiles')?'Sakatu Amaitu erronka.':'');
+    if(status.textContent!==msg)status.textContent=msg;
+    const finish=bar.querySelector('#hb37-transport-finish');
+    const ready=!!document.getElementById('hbcg-finish');
+    if(finish.hidden===ready)finish.hidden=!ready;
+   }
+   const evidence=document.getElementById('hbba-root');
+   if(evidence){
+    let note=evidence.querySelector('#hb37-evidence-tip');
+    if(!note){note=document.createElement('div');note.id='hb37-evidence-tip';note.setAttribute('role','status');
+     (evidence.querySelector('.hbba-title')||evidence.firstElementChild).after(note);}
+    const answers=Number((document.getElementById('hbba-count')?.textContent||'').match(/\d+/)?.[0]||0);
+    const before=evidence.querySelector('[data-hotspot="cart"].is-seen,[data-hotspot="sail"].is-seen');
+    const after=evidence.querySelector('[data-hotspot="train"].is-seen,[data-hotspot="factory"].is-seen,[data-hotspot="steamship"].is-seen,[data-hotspot="commerce"].is-seen');
+    const ready=!document.getElementById('submit-answer')?.disabled;
+    const msg=ready?'✓ Prest! Sakatu «EGIAZTATU» jarraitzeko.':
+       'Osatzeko: ① lerratu irudia bi aldeetara; ② ireki informazio-puntu bana garai bakoitzean'+
+       (before?' ✓ aurrekoa':'')+(after?' ✓ ondorengoa':'')+'; ③ sailkatu 8 baieztapenak ('+answers+'/8).';
+    if(note.textContent!==msg)note.textContent=msg;
+   }
+  }
+  function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;paint()});}
+  new MutationObserver(schedule).observe(area,{childList:true,subtree:true,attributes:true,attributeFilter:['class','disabled','hidden']});
+  new MutationObserver(schedule).observe(document.querySelector('.hb-mission')||area,{childList:true,subtree:true});
+  const verify=document.getElementById('submit-answer');
+  if(verify)new MutationObserver(schedule).observe(verify,{attributes:true,attributeFilter:['disabled']});
+  paint();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
