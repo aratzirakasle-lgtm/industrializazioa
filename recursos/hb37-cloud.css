@@ -161,3 +161,150 @@ body.hb-playing .hb-exercise-heading{scroll-margin-top:54px}
  #hb37-flow-message{bottom:69px;padding:5px 10px;font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){body.hb-playing #next-answer.hb37-ready-next{transition:none!important}}
+
+
+/* HistoriaBizia V37.12 · Vista de juego aprovechada en portatiles, solo CSS */
+@media(min-width:821px) and (max-width:1180px) and (max-height:900px){
+ body.hb-playing:is(.hb-origin-playing,.hb-sectors-playing,.hbtr-rail-playing,.hbfp-playing) #journey-panel{display:none!important}
+ body.hb-playing:is(.hb-origin-playing,.hb-sectors-playing,.hbtr-rail-playing,.hbfp-playing) #journey-panel.open{
+  display:block!important;position:fixed!important;top:46px!important;left:8px!important;
+  width:min(290px,calc(100vw - 24px))!important;height:auto!important;max-height:calc(100dvh - 100px)!important;
+  min-height:0!important;overflow:auto!important;z-index:1101!important;margin:0!important;padding:9px!important;
+ }
+ body.hb-playing:is(.hb-origin-playing,.hb-sectors-playing,.hbtr-rail-playing,.hbfp-playing) #mobile-journey-toggle{
+  display:block!important;position:fixed!important;inset:auto auto 8px 8px!important;z-index:1102!important;
+  width:136px!important;max-width:136px!important;height:auto!important;min-height:46px!important;
+  margin:0!important;padding:5px 7px!important;font-size:12px!important;text-align:center!important;
+ }
+ body.hb-playing:is(.hb-origin-playing,.hb-sectors-playing,.hbtr-rail-playing,.hbfp-playing) .hb-play-layout{
+  display:block!important;position:relative!important;grid-template-columns:none!important;
+  width:100%!important;max-width:none!important;margin:0!important;padding:0 10px!important;
+ }
+ body.hb-playing:is(.hb-origin-playing,.hb-sectors-playing,.hbtr-rail-playing,.hbfp-playing) .hb-play-layout>.hb-exercise{
+  position:relative!important;left:auto!important;right:auto!important;
+  width:100%!important;max-width:100%!important;margin:0!important;
+  padding:6px 7px 105px!important;min-height:0!important;
+ }
+ body.hb-playing:is(.hb-origin-playing,.hb-sectors-playing,.hbtr-rail-playing,.hbfp-playing) .hb-exercise-heading{scroll-margin-top:12px}
+ body.hb-timeline-playing .hb-exercise-heading,body.hb-sectors-playing .hb-exercise-heading{
+  position:relative!important;top:auto!important;left:auto!important;right:auto!important;
+  width:100%!important;max-width:100%!important;margin:0 auto 8px!important;
+  min-height:85px!important;height:auto!important;
+ }
+ body.hb-timeline-playing .hb-play-layout>.hb-exercise{padding-top:5px!important}
+ body.hb-sectors-playing .hb-play-layout>.hb-exercise{padding-top:8px!important}
+ body.hb-sectors-playing .hb-main-grid{margin-top:4px!important}
+ body.hb-timeline-playing .v7-slots-period,body.hb-timeline-playing .v7-card-bank{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+ body.hb-playing:is(.hb-origin-playing,.hb-sectors-playing,.hbtr-rail-playing,.hbfp-playing) .hb-actionbar{
+  position:fixed!important;inset:auto 10px 7px 155px!important;max-width:none!important;width:calc(100vw - 165px)!important;
+  min-height:57px!important;max-height:none!important;padding:6px 10px!important;margin:0!important;
+  box-sizing:border-box!important;z-index:108!important;display:flex!important;
+  gap:clamp(5px,.9vw,11px)!important;justify-content:center!important;align-items:center!important;
+ }
+ body.hb-playing:is(.hb-origin-playing,.hb-sectors-playing,.hbtr-rail-playing,.hbfp-playing) .hb-actionbar .hb-action{
+  min-height:43px!important;min-width:0!important;flex:1 1 auto!important;
+  font-size:clamp(12px,1.15vw,17px)!important;line-height:1.2!important;
+  white-space:normal!important;padding:6px 9px!important;
+ }
+ body.hbtr-rail-playing .hb-main-grid,body.hbfp-playing .hb-main-grid{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(225px,29%)!important;
+  gap:10px!important;align-items:start!important;
+ }
+ body.hbtr-rail-playing .hb-main-grid>.challenge-card,body.hbfp-playing .hb-main-grid>.challenge-card{min-width:0!important;width:auto!important}
+ body.hbtr-rail-playing .hb-main-grid>.hb-status-column,body.hbfp-playing .hb-main-grid>.hb-status-column{
+  position:relative!important;display:flex!important;flex-direction:column!important;
+  width:auto!important;height:auto!important;min-height:0!important;max-height:calc(100dvh - 215px)!important;
+  overflow-y:auto!important;gap:6px!important;margin:0!important;
+ }
+ body.hbtr-rail-playing .hb-main-grid>.hb-status-column>* ,body.hbfp-playing .hb-main-grid>.hb-status-column>*{min-width:0!important;width:100%!important}
+ body.hbfp-playing .hb-exercise-heading{min-height:105px!important;padding:8px 10px!important}
+ body.hbfp-playing .hb-exercise-heading #play-title{font-size:clamp(22px,2.4vw,30px)!important}
+ body.hbfp-playing #hbfp-root .hbfp-heading{min-height:48px!important;height:auto!important}
+ body.hbfp-playing #hbfp-root .hbfp-top-grid{min-height:0!important}
+}
+
+/* Ajustes específicos basados en el espacio real de un portátil 1024×768. */
+@media(min-width:821px) and (max-width:1180px) and (max-height:900px){
+ /* 2: el título no debe tapar las casillas de la cronología. */
+ body.hb-timeline-playing .hb-exercise-heading{transform:none!important;left:0!important}
+ body.hb-timeline-playing .hb-main-grid{margin-top:92px!important}
+ body.hb-timeline-playing #origin-milestones{top:383px!important}
+ body.hb-timeline-playing .v7-card{min-height:104px!important;height:104px!important}
+ body.hb-timeline-playing .v7-card img{height:65px!important;max-height:65px!important}
+ body.hb-timeline-playing .v7-slot{min-height:68px!important;height:68px!important}
+ /* 3: no comprimir imágenes ni eliminar pistas; seis tarjetas completas en una fila. */
+ body.hb-sectors-playing .hb-exercise-heading{transform:none!important;left:0!important}
+ body.hb-sectors-playing #answer-area:has(>.hb10-board){display:block!important}
+ body.hb-sectors-playing #answer-area .hb10-board{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;height:auto!important}
+ body.hb-sectors-playing #answer-area .hb10-sector{height:347px!important;min-height:347px!important}
+ body.hb-sectors-playing #answer-area .hb10-sector-head{height:39px!important;min-height:39px!important}
+ body.hb-sectors-playing #answer-area .hb10-sector-grid{grid-template-rows:repeat(2,minmax(0,1fr))!important;height:292px!important;min-height:0!important;gap:4px!important}
+ body.hb-sectors-playing #answer-area .hb10-zone{min-height:0!important;height:142px!important;display:flex!important;flex-direction:column!important}
+ body.hb-sectors-playing #answer-area .hb10-zone-label{min-height:32px!important;height:auto!important;flex:0 0 auto!important;display:flex!important;flex-direction:row!important;justify-content:center!important;align-items:center!important;gap:3px!important;font-size:12px!important;line-height:1.15!important}
+ body.hb-sectors-playing #answer-area .hb10-zone-content{height:auto!important;flex:1 1 auto!important;width:100%!important;min-height:0!important}
+ body.hb-sectors-playing #answer-area .hb10-zone-content img{height:77px!important;max-height:77px!important;object-fit:contain!important}
+ body.hb-sectors-playing #answer-area .hb10-card-tray{margin-top:5px!important}
+ body.hb-sectors-playing #answer-area .hb10-tray-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-template-rows:1fr!important;gap:5px!important}
+ body.hb-sectors-playing #answer-area .hb10-card{min-height:112px!important;height:112px!important;padding:3px!important;font-size:12px!important;line-height:1.2!important}
+ body.hb-sectors-playing #answer-area .hb10-card img{max-height:62px!important;height:62px!important;object-fit:contain!important}
+ /* 4: reducir solo el espacio escénico para mostrar los segmentos y el botón. */
+ body.hbtr-rail-playing #answer-area .hbtr-rail-map{height:clamp(180px,27vh,215px)!important;min-height:0!important}
+ body.hbtr-rail-playing #answer-area .hbtr-rail-workshop{min-height:0!important;height:auto!important}
+}
+/* Corrección final del reto 3.1: prevalecer sobre antiguos mínimos de 480/200/192 px. */
+@media(min-width:821px) and (max-width:1180px) and (max-height:900px){
+ body.hb-sectors-playing #hb11-stepper{
+  top:184px!important;left:calc(50% - 345px)!important;right:auto!important;
+  width:690px!important;padding-left:150px!important;
+ }
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-sector{
+  height:353px!important;min-height:353px!important;
+ }
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-zone{
+  height:146px!important;min-height:146px!important;
+ }
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-card{
+  height:124px!important;min-height:124px!important;
+ }
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-card img{
+  height:74px!important;max-height:74px!important;
+ }
+ body.hb-timeline-playing .v7-card{min-height:86px!important;height:86px!important}
+ body.hb-timeline-playing .v7-card img{height:52px!important;max-height:52px!important}
+}
+/* 3.1: dejar las etiquetas de las seis fichas despejadas de la barra inferior. */
+@media(min-width:821px) and (max-width:1180px) and (max-height:900px){
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-sector{height:335px!important;min-height:335px!important}
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-zone{height:137px!important;min-height:137px!important}
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-zone-content img{height:60px!important;max-height:60px!important}
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-card{height:106px!important;min-height:106px!important}
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-card img{height:54px!important;max-height:54px!important}
+}
+/* No cortar los nombres de las tarjetas al ganar espacio vertical. */
+@media(min-width:821px) and (max-width:1180px) and (max-height:900px){
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-card img{
+  flex:0 0 48px!important;height:48px!important;max-height:48px!important;min-height:0!important;
+ }
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity):has(>.hb10-board) .hb10-card strong{
+  font-size:13px!important;line-height:1.13!important;flex:1 1 auto!important;
+  min-height:0!important;overflow-wrap:anywhere!important;
+ }
+ /* Mantiene el espacio libre recuperado también frente a las reglas V37.10. */
+ body.hb-playing:has(#journey-panel .hb-route-game.active:is([data-route="sektoreak"],[data-route="garraioa"],[data-route="bigarrena"])) .hb-actionbar{
+  position:fixed!important;inset:auto 10px 7px 155px!important;
+  width:calc(100vw - 165px)!important;max-width:none!important;min-height:57px!important;
+  max-height:none!important;padding:6px 10px!important;margin:0!important;display:flex!important;
+ }
+ body.hb-playing:has(#journey-panel .hb-route-game.active:is([data-route="sektoreak"],[data-route="garraioa"],[data-route="bigarrena"])) .hb-actionbar .hb-action{
+  min-width:0!important;min-height:43px!important;max-width:none!important;flex:1 1 auto!important;
+  padding:6px 9px!important;font-size:clamp(12px,1.15vw,17px)!important;
+ }
+}
+/* Juego 3: el título no queda por debajo de los indicadores de tiempo/puntos. */
+@media(min-width:821px) and (max-width:1180px) and (max-height:900px){
+ body.hb-sectors-playing .hb-exercise-heading{
+  width:min(600px,calc(100vw - 414px))!important;
+  max-width:min(600px,calc(100vw - 414px))!important;
+  margin:0 0 8px!important;
+ }
+}
