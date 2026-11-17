@@ -231,3 +231,51 @@ function top10Started(game,previous){
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else setTimeout(init,0);
 })();
+
+
+/* V37.11 · Ayuda de flujo NO INTRUSIVA: solo observa controles y muestra información. */
+(function installSafeFlowAssist(){
+  if(document.getElementById('hb37-flow-message'))return;
+  const screen=document.getElementById('play-screen');
+  const next=document.getElementById('next-answer');
+  const verify=document.getElementById('submit-answer');
+  const label=document.getElementById('round-label');
+  const feedback=document.getElementById('question-feedback');
+  const meta=document.querySelector('.hb-exercise-heading .hb-title-meta');
+  if(!screen||!next||!verify||!label||!feedback||!meta)return;
+  const badge=document.createElement('span');badge.id='hb37-flow-step';badge.setAttribute('aria-label','Uneko erronka');meta.append(badge);
+  const note=document.createElement('div');note.id='hb37-flow-message';note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.hidden=true;document.body.append(note);
+  let queued=false;
+  function paint(){
+    const live=document.body.classList.contains('hb-playing')&&!screen.classList.contains('hidden');
+    const step=label.textContent.trim();
+    const title=live?'🎯 '+step:'';
+    if(badge.textContent!==title)badge.textContent=title;
+    const ready=live&&!next.disabled&&!feedback.classList.contains('hidden');
+    if(next.classList.contains('hb37-ready-next')!==ready)next.classList.toggle('hb37-ready-next',ready);
+    if(note.hidden===ready)note.hidden=!ready;
+    if(ready){
+      const msg=(feedback.querySelector('strong')?.textContent||'').match(/\+\s*\d+\s*puntu/i)?.[0]||'';
+      const content='✓ '+(msg?msg+' · ':'')+'Hurrengoa sakatu jarraitzeko';
+      if(note.textContent!==content)note.textContent=content;
+    }
+  }
+  function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;paint()})}
+  const observer=new MutationObserver(schedule);
+  observer.observe(next,{attributes:true,attributeFilter:['disabled','class']});
+  observer.observe(feedback,{attributes:true,attributeFilter:['class'],childList:true,subtree:true,characterData:true});
+  observer.observe(label,{childList:true,subtree:true,characterData:true});
+  observer.observe(screen,{attributes:true,attributeFilter:['class']});
+  observer.observe(document.body,{attributes:true,attributeFilter:['class']});
+  next.addEventListener('click',()=>{
+    if(next.disabled||!document.body.classList.contains('hb-playing'))return;
+    note.hidden=true;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(screen.classList.contains('hidden')||document.getElementById('result-dialog')?.open)return;
+      document.querySelector('.hb-exercise-heading')?.scrollIntoView({
+        behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
+        block:'start'});
+    }));
+  });
+  paint();
+})();
