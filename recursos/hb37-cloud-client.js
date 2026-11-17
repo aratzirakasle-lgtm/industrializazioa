@@ -279,3 +279,19 @@ function top10Started(game,previous){
   });
   paint();
 })();
+
+
+/* HistoriaBizia V37.12 UI-only: 3. jokoaren Laguntza tolestu eta erakutsi klik egitean. */
+(()=>{
+ const screen=document.getElementById('play-screen');if(!screen)return;
+ function fold(){
+  if(!document.body.classList.contains('hb-sectors-playing'))return;
+  screen.querySelectorAll('#hb10-guide details').forEach(d=>{
+   if(d.dataset.hbFoldInitialized)return;
+   d.dataset.hbFoldInitialized='1';
+   if(d.open)d.open=false;
+  });
+ }
+ new MutationObserver(fold).observe(screen,{childList:true,subtree:true});
+ fold();
+})();
