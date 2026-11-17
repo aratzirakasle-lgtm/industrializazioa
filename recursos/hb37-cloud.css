@@ -308,3 +308,108 @@ body.hb-playing .hb-exercise-heading{scroll-margin-top:54px}
   margin:0 0 8px!important;
  }
 }
+
+
+/* HistoriaBizia V37.13 · reparación de los juegos 2 y 4; solo presentación. */
+@media(min-width:821px){
+ /* Juego 2: la banda numerada antigua se superponía a las tarjetas a partir de la tercera ronda. */
+ body.hb-playing.hb-timeline-playing #origin-milestones,
+ body.hb-playing.hb-timeline-playing .hb-origin-milestones{display:none!important}
+ body.hb-playing.hb-timeline-playing .v7-mode-period .v7-slots-period{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ body.hb-playing.hb-timeline-playing .v7-mode-period .v7-card-bank,
+ body.hb-playing.hb-timeline-playing .v7-mode-systems .v7-card-bank,
+ body.hb-playing.hb-timeline-playing .v7-mode-investigation .v7-card-bank{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ body.hb-playing.hb-timeline-playing .v7-mode-workflow .v7-card-bank,
+ body.hb-playing.hb-timeline-playing .v7-mode-workflow .v7-slots{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ body.hb-playing.hb-timeline-playing .v7-mode-dated .v7-card-bank,
+ body.hb-playing.hb-timeline-playing .v7-mode-dated .v7-slots{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+ body.hb-playing.hb-timeline-playing .v7-mode-relation .v7-card-bank,
+ body.hb-playing.hb-timeline-playing .v7-mode-relation .v7-slots{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+ body.hb-playing.hb-timeline-playing .v7-mode-systems .v7-slots{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ body.hb-playing.hb-timeline-playing .v7-mode-investigation .v7-slots{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ body.hb-playing.hb-timeline-playing .v7-card{min-height:100px!important;height:auto!important;max-width:100%!important}
+ body.hb-playing.hb-timeline-playing .v7-card strong{overflow-wrap:anywhere;line-height:1.18}
+ /* Juego 4: todos sus seis retos necesitan el mismo ancho. Antes se corregía solo el primero. */
+ body.hb-playing.hb-transport-playing #journey-panel:not(.open){display:none!important}
+ body.hb-playing.hb-transport-playing #journey-panel.open{
+  display:block!important;position:fixed!important;top:45px!important;left:8px!important;
+  width:min(290px,calc(100vw - 24px))!important;min-height:0!important;
+  height:auto!important;max-height:calc(100dvh - 95px)!important;
+  overflow:auto!important;z-index:1101!important;margin:0!important;padding:9px!important;
+ }
+ body.hb-playing.hb-transport-playing #mobile-journey-toggle{
+  display:block!important;position:fixed!important;inset:auto auto 8px 8px!important;
+  z-index:1102!important;width:136px!important;max-width:136px!important;height:auto!important;
+  min-height:46px!important;margin:0!important;padding:5px 7px!important;
+  font-size:12px!important;text-align:center!important;
+ }
+ body.hb-playing.hb-transport-playing .hb-play-layout{
+  display:block!important;grid-template-columns:none!important;position:relative!important;
+  width:100%!important;max-width:none!important;margin:0!important;padding:0 10px!important;
+ }
+ body.hb-playing.hb-transport-playing .hb-play-layout>.hb-exercise{
+  position:relative!important;left:auto!important;right:auto!important;
+  width:100%!important;max-width:100%!important;margin:0!important;
+  padding-bottom:105px!important;
+ }
+ body.hb-playing.hb-transport-playing .hb-actionbar{
+  position:fixed!important;inset:auto 10px 7px 155px!important;
+  width:calc(100vw - 165px)!important;max-width:none!important;min-height:57px!important;
+  max-height:none!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;gap:clamp(5px,.9vw,11px)!important;
+  box-sizing:border-box!important;margin:0!important;padding:6px 10px!important;z-index:108!important;
+ }
+ body.hb-playing.hb-transport-playing .hb-actionbar .hb-action{
+  min-width:0!important;max-width:none!important;min-height:43px!important;
+  flex:1 1 auto!important;padding:6px 9px!important;
+  font-size:clamp(12px,1.15vw,17px)!important;line-height:1.2!important;
+  white-space:normal!important;
+ }
+}
+/* Durante el reto de mercancías, mostrar los pasos y los botones de salida en el área jugable. */
+#hb37-transport-quick{
+ position:sticky;top:5px;z-index:20;display:flex;align-items:center;flex-wrap:wrap;
+ gap:8px;margin:8px 0 12px;padding:9px 12px;border:2px solid #c59337;
+ border-radius:12px;background:#fff1c9;color:#3c2d15;
+ font:700 13px/1.4 'Trebuchet MS',Arial,sans-serif;box-shadow:0 3px 9px #0003;
+}
+#hb37-transport-quick button{
+ cursor:pointer;border-radius:9px;padding:9px 12px;min-height:41px;
+ border:2px solid #a57923;background:#114a78;color:#fff7dd;
+ font:800 13px/1.2 'Trebuchet MS',Arial,sans-serif;
+}
+#hb37-transport-quick button:focus-visible{outline:3px solid #f6bb38;outline-offset:2px}
+#hb37-transport-quick button:disabled{opacity:.72;cursor:default;background:#2d6652}
+#hb37-transport-finish:not([hidden]){background:#0c753f;border-color:#0a4b2d}
+#hb37-evidence-tip{border:2px solid #b68b44;border-radius:10px;padding:9px 11px;margin:9px 0;
+ background:#fff2cd;color:#463414;font:800 13px/1.4 'Trebuchet MS',Arial,sans-serif}
+#hb37-evidence-tip strong{color:#155c3d}
+@media(max-width:820px){
+ body.hb-playing.hb-timeline-playing #origin-milestones{display:none!important}
+ #hb37-transport-quick{position:relative;top:auto;font-size:12px;padding:7px;gap:5px}
+ #hb37-transport-quick button{font-size:12px;min-height:39px;padding:7px 9px}
+ #hb37-evidence-tip{font-size:12px;padding:7px}
+}
+/* Puesta a punto de los controles del juego 2 fuera del ancho de portátil anterior. */
+@media(min-width:1181px){
+ body.hb-playing.hb-timeline-playing .hb-actionbar{
+  position:fixed!important;inset:auto 14px 8px 280px!important;
+  width:calc(100vw - 294px)!important;max-width:none!important;min-height:55px!important;
+  z-index:108!important;margin:0!important;padding:6px 10px!important;display:flex!important;
+ }
+ body.hb-playing.hb-timeline-playing .hb-exercise{padding-bottom:100px!important}
+}
+@media(max-width:820px){
+ body.hb-playing:is(.hb-timeline-playing,.hb-transport-playing) .hb-actionbar{
+  position:fixed!important;inset:auto 5px 5px 5px!important;width:calc(100vw - 10px)!important;
+  max-width:none!important;max-height:none!important;z-index:108!important;
+  display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:4px!important;
+  padding:5px!important;margin:0!important;box-sizing:border-box!important;
+ }
+ body.hb-playing:is(.hb-timeline-playing,.hb-transport-playing) .hb-actionbar .hb-action{
+  flex:1 1 calc(50% - 4px)!important;min-height:39px!important;min-width:0!important;
+  padding:5px 7px!important;font-size:12px!important;white-space:normal!important;
+ }
+ body.hb-playing:is(.hb-timeline-playing,.hb-transport-playing) .hb-exercise{padding-bottom:150px!important}
+ body.hb-playing.hb-transport-playing #mobile-journey-toggle{bottom:118px!important}
+}
