@@ -34,3 +34,94 @@ body.hbdesk-playing #hb37-game-top10{top:48px}
 #hb37-save-notice[data-kind="pending"]{background:#fff0e2;border-color:#df8b48;color:#8e3c11}
 #hb37-save-notice[data-kind="sending"]{background:#edf5ff;border-color:#5d91c4;color:#20517f}
 @media(max-width:740px){#hb37-save-notice{font-size:13px;bottom:70px;padding:10px 13px}}
+
+
+/* V37.10 · OPTIMIZACION SEGURA 3/4/5 — SOLO PRESENTACION.
+   No modifica respuestas, botones disabled, eventos ni puntuaciones. */
+body.hb-playing:has(#journey-panel .hb-route-game.active:is([data-route="sektoreak"],[data-route="garraioa"],[data-route="bigarrena"])) .hb-actionbar{
+ position:fixed!important;
+ inset:auto auto 7px calc(270px + 1.5vw)!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:clamp(4px,1vw,10px)!important;
+ margin:0!important;
+ padding:7px 10px!important;
+ min-height:55px!important;
+ max-height:none!important;
+ width:min(780px,calc(100vw - 300px))!important;
+ box-sizing:border-box!important;
+ z-index:95!important;
+ border-radius:15px!important;
+ box-shadow:0 4px 22px #000a!important;
+}
+body.hb-playing:has(#journey-panel .hb-route-game.active:is([data-route="sektoreak"],[data-route="garraioa"],[data-route="bigarrena"])) .hb-actionbar .hb-action{
+ min-width:0!important;
+ min-height:43px!important;
+ max-width:none!important;
+ padding:7px clamp(6px,1.2vw,16px)!important;
+ font-size:clamp(12px,1.4vw,17px)!important;
+ line-height:1.2!important;
+ flex:1 1 0!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere;
+}
+body.hb-playing:has(#journey-panel .hb-route-game.active:is([data-route="sektoreak"],[data-route="garraioa"],[data-route="bigarrena"])) .hb-exercise{
+ padding-bottom:96px!important;
+}
+/* En el reto 3.1, los nombres de materiales caben completos sobre cada tarjeta. */
+@media(min-width:760px) and (max-width:1180px){
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity) .hb10-board .hb10-zone{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:stretch!important;
+  grid-template-columns:none!important;
+ }
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity) .hb10-board .hb10-zone-label{
+  flex:0 0 auto!important;
+  display:flex!important;
+  width:100%!important;
+  min-height:37px!important;
+  height:auto!important;
+  padding:5px 3px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-direction:row!important;
+  gap:4px!important;
+  font-size:clamp(12px,1.25vw,15px)!important;
+  line-height:1.23!important;
+  text-align:center!important;
+  overflow-wrap:anywhere;
+ }
+ body.hb-sectors-playing #answer-area:not(.hb104-activity):not(.hb105-activity) .hb10-board .hb10-zone-content{
+  width:100%!important;
+  min-height:0!important;
+  flex:1 1 auto!important;
+ }
+}
+/* Mantener los controles accesibles en teléfonos sin tapar el último contenido. */
+@media(max-width:759px){
+ body.hb-playing:has(#journey-panel .hb-route-game.active:is([data-route="sektoreak"],[data-route="garraioa"],[data-route="bigarrena"])) .hb-actionbar{
+  inset:auto 5px 5px 5px!important;
+  padding:5px!important;
+  gap:4px!important;
+  flex-wrap:wrap!important;
+  width:auto!important;
+ }
+ body.hb-playing:has(#journey-panel .hb-route-game.active:is([data-route="sektoreak"],[data-route="garraioa"],[data-route="bigarrena"])) .hb-actionbar .hb-action{
+  flex:1 1 calc(50% - 4px)!important;
+  min-height:39px!important;
+  padding:5px 4px!important;
+  font-size:12px!important;
+ }
+ body.hb-playing:has(#journey-panel .hb-route-game.active:is([data-route="sektoreak"],[data-route="garraioa"],[data-route="bigarrena"])) .hb-exercise{
+  padding-bottom:135px!important;
+ }
+}
+/* Juego 5: compactar el encabezado y facilitar lectura de las decisiones. */
+@media(min-width:760px) and (max-width:1180px){
+ body.hbfp-playing .hb-exercise-heading{height:auto!important;min-height:109px!important;padding:8px 15px!important}
+ body.hbfp-playing .hb-exercise-heading #play-title{font-size:clamp(24px,2.7vw,30px)!important;line-height:1.1!important;margin:3px 0!important}
+ body.hbfp-playing #hbfp-steps{height:auto!important;min-height:54px!important;padding:5px 9px!important}
+ body.hbfp-playing .hbfp-principle{font-size:11px!important;line-height:1.25!important;min-height:40px!important;overflow-wrap:anywhere}
+}
